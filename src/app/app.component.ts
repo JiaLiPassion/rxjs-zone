@@ -6,53 +6,50 @@ import { Observable, Subscription, Subject } from 'rxjs/Rx';
 @Component({
   selector: 'app-root',
   template: `
-    <div>
-      <h2>Hello {{name}}</h2>
-    </div>
-    
-    <p>spaces$: {{ spaces$ | async }}</p>
-  `,
+              <div>
+                <h2>Hello {{name}}</h2>
+              </div>
+
+              <p>spaces$: {{ num }}</p>
+            `,
 })
 export class AppComponent {
-  
-  public name:string;
 
-  public spaces$: Observable<any>;
-  
-  private store$ = new Subject();
+  public name: string;
+
+  public num;
   private activitySubscription = new Subscription();
-  
+
   constructor(private ngZone: NgZone) {
     this.name = `Angular! v${VERSION.full}`
   }
-  
+
+  // ngDoCheck() {
+  //   console.log('doCheck!!!');
+  // }
+
   ngOnInit() {
     console.log('ngOninit');
-    
-    this.spaces$ = this.store$
-      .asObservable()
-      .do((value) => {
-        const inZone = NgZone.isInAngularZone();
-        console.log('spaces$ next => assertInAngularZone', value, inZone);
-      });
-                        
+
     const repeater$ = Observable.of({})
       .do(() => {
         const num = Math.floor(Math.random() * 100);
         console.log('Poll action dispatched', num);
-        this.store$.next('store$.next(' + num + ')');
+        this.num = num;
       })
       .delay(2000)
       .repeat();
-      
+
     this.ngZone.runOutsideAngular(() => {
-      this.activitySubscription = repeater$.subscribe(
-        () => { },
+      this.activitySubscription = repeater$
+        .subscribe(
+        () => {
+        },
         (error) => {
           console.error('refresh error', error);
         },
         () => console.info('finished')
       );
-   });
+    });
   }
 }
